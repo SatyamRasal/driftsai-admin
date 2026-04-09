@@ -54,8 +54,9 @@ export function verifySessionToken(token?: string | null) {
   }
 }
 
-export function getAdminSession() {
-  const token = cookies().get(ADMIN_COOKIE)?.value;
+export async function getAdminSession() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(ADMIN_COOKIE)?.value;
   return verifySessionToken(token);
 }
 
@@ -77,12 +78,4 @@ export function clearAdminCookie() {
     path: '/',
     maxAge: 0,
   });
-}
-// Add 'async' to the function signature
-export async function getAdminSession() {
-  // Add 'await' before cookies()
-  const cookieStore = await cookies();
-  const token = cookieStore.get(ADMIN_COOKIE)?.value;
-  
-  return verifySessionToken(token);
 }
