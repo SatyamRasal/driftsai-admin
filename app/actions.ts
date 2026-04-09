@@ -8,11 +8,15 @@ import { buildLeadEmailHtml, maybeSendNotificationEmail } from '@/lib/mailer';
 import { writeAuditLog } from '@/lib/audit';
 import { sanitizeRedirectPath } from '@/lib/utils';
 
+function zodMessages(error: { issues: Array<{ message: string }> }) {
+  return error.issues.map((issue) => issue.message).join(', ');
+}
+
 export async function createLead(formData: FormData) {
   const raw = Object.fromEntries(formData.entries());
   const parsed = leadSchema.safeParse(raw);
   if (!parsed.success) {
-    throw new Error(parsed.error.issues.map(({ message }) => message).join(', '));
+    throw new Error(zodMessages(parsed.error));
   }
 
   if (parsed.data.website) {
