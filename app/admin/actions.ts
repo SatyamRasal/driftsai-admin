@@ -11,7 +11,7 @@ import { writeAuditLog } from '@/lib/audit';
 import { isTruthy, toSlug } from '@/lib/utils';
 
 function requireAdminEmail() {
-  const session = await getAdminSession();
+  const session = getAdminSession();
   if (!session) redirect('/admin/login');
   return session.email;
 }

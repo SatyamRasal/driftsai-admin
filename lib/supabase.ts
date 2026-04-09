@@ -6,12 +6,18 @@ function requiredEnv(name: string) {
   return value;
 }
 
+function getSupabaseUrl() {
+  return process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '';
+}
+
 export function hasAdminSupabaseConfig() {
-  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+  return Boolean(getSupabaseUrl() && process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
 export function getSupabaseAdminClient() {
-  return createClient(requiredEnv('SUPABASE_URL'), requiredEnv('SUPABASE_SERVICE_ROLE_KEY'), {
+  const url = getSupabaseUrl();
+  if (!url) throw new Error('NEXT_PUBLIC_SUPABASE_URL or SUPABASE_URL is required');
+  return createClient(url, requiredEnv('SUPABASE_SERVICE_ROLE_KEY'), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
@@ -26,5 +32,7 @@ export function tryGetSupabaseAdminClient() {
 }
 
 export function getSupabasePublicClient() {
-  return createClient(requiredEnv('NEXT_PUBLIC_SUPABASE_URL'), requiredEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY'));
+  const url = getSupabaseUrl();
+  if (!url) throw new Error('NEXT_PUBLIC_SUPABASE_URL or SUPABASE_URL is required');
+  return createClient(url, requiredEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY'));
 }

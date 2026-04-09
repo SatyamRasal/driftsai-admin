@@ -11,7 +11,7 @@ import { sanitizeFilename } from '@/lib/utils';
 const MAX_UPLOAD_SIZE = 8 * 1024 * 1024;
 
 export async function uploadSiteAsset(formData: FormData) {
-  const session = await getAdminSession();
+  const session = getAdminSession();
   if (!session) redirect('/admin/login');
   const adminEmail = session.email;
   const supabase = getSupabaseAdminClient();

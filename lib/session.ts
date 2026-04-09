@@ -7,10 +7,21 @@ const COOKIE_MAX_AGE = 60 * 60 * 12; // 12 hours
 
 function getSecret() {
   const secret = process.env.ADMIN_SESSION_SECRET;
-  if (!secret || secret.length < 32) {
-    throw new Error('ADMIN_SESSION_SECRET must be set to a long random string.');
+  if (secret && secret.length >= 32) {
+    return secret;
   }
-  return secret;
+
+  const email = (process.env.ADMIN_EMAIL || 'admin@driftsai.com').trim().toLowerCase();
+  const passwordSource = process.env.ADMIN_PASSWORD_HASH || process.env.ADMIN_PASSWORD || '';
+
+  if (!passwordSource) {
+    throw new Error('ADMIN_SESSION_SECRET must be set to a long random string, or ADMIN_PASSWORD / ADMIN_PASSWORD_HASH must be configured.');
+  }
+
+  // Fallback for deployments that omitted ADMIN_SESSION_SECRET.
+  // This keeps login functional while still producing a deterministic,
+  // server-only signing key tied to the admin configuration.
+  return crypto.createHash('sha256').update(`${email}:${passwordSource}`).digest('hex');
 }
 
 function base64url(input: Buffer | string) {
@@ -54,15 +65,13 @@ export function verifySessionToken(token?: string | null) {
   }
 }
 
-export async function getAdminSession() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(ADMIN_COOKIE)?.value;
+export function getAdminSession() {
+  const token = cookies().get(ADMIN_COOKIE)?.value;
   return verifySessionToken(token);
 }
 
-export async function setAdminCookie(token: string) {
-  const cookieStore = await cookies();
-  cookieStore.set(ADMIN_COOKIE, token, {
+export function setAdminCookie(token: string) {
+  cookies().set(ADMIN_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -71,9 +80,8 @@ export async function setAdminCookie(token: string) {
   });
 }
 
-export async function clearAdminCookie() {
-  const cookieStore = await cookies();
-  cookieStore.set(ADMIN_COOKIE, '', {
+export function clearAdminCookie() {
+  cookies().set(ADMIN_COOKIE, '', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',

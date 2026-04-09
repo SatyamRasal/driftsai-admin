@@ -9,7 +9,7 @@ import { formatDate } from '@/lib/utils';
 export const revalidate = 0;
 
 export default async function AdminPage() {
-  const session = await getAdminSession();
+  const session = getAdminSession();
   if (!session) redirect('/admin/login');
   const adminEmail = session.email;
 

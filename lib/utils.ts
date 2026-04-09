@@ -84,13 +84,3 @@ export function safeCompareStrings(a: string, b: string) {
   }
   return diff === 0;
 }
-
-export function getSiteUrl() {
-  const candidate = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'https://driftsai.com';
-  try {
-    const url = new URL(candidate);
-    return url.origin;
-  } catch {
-    return 'https://driftsai.com';
-  }
-}

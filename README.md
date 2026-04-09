@@ -41,7 +41,7 @@ Create a `.env.local` from the example below.
 ## Admin login
 
 - Email: `admin@driftsai.com`
-- Password: `Admin@drifts#1513#`
+- Password: set this in your environment variables. If the password contains `#`, quote it in `.env.local` or use `ADMIN_PASSWORD_HASH`.
 
 These are read from environment variables in production. Change them after launch.
 
@@ -53,18 +53,20 @@ These are read from environment variables in production. Change them after launc
 4. Deploy.
 5. Set the custom domain `driftsai.com` in Vercel.
 
+Important: if your password or secret contains `#`, wrap it in quotes in `.env.local` or store it in Vercel environment variables. Unquoted `#` is treated as a comment by dotenv parsers.
+
 ## Supabase environment variables
 
 Use these values in `.env.local` and in Vercel:
 
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
 - `ADMIN_EMAIL`
-- `ADMIN_PASSWORD`
+- `ADMIN_PASSWORD` or `ADMIN_PASSWORD_HASH`
 - `ADMIN_SESSION_SECRET`
 - `SUPABASE_STORAGE_BUCKET`
+- `SUPABASE_URL` only if you need a fallback
 
 ## Notes
 

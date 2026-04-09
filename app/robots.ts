@@ -1,4 +1,3 @@
-import { getSiteUrl } from '@/lib/utils';
 import type { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
@@ -8,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/admin'],
     },
-    sitemap: `${getSiteUrl()}/sitemap.xml`,
+    sitemap: 'https://driftsai.com/sitemap.xml',
   };
 }

@@ -1,21 +1,14 @@
 import { NextResponse } from 'next/server';
-import { createSessionToken } from '@/lib/session';
-
-function getEnv(name: string) {
-  const value = process.env[name];
-  if (!value) throw new Error(`${name} is not configured`);
-  return value;
-}
+import { createSessionToken, ADMIN_COOKIE } from '@/lib/session';
+import { verifyAdminCredentials } from '@/lib/admin-auth';
 
 export async function POST(req: Request) {
   try {
     const form = await req.formData();
-    const email = String(form.get('email') || '').trim().toLowerCase();
+    const email = String(form.get('email') || '');
     const password = String(form.get('password') || '');
-    const expectedEmail = getEnv('ADMIN_EMAIL').trim().toLowerCase();
-    const expectedPassword = getEnv('ADMIN_PASSWORD');
 
-    const isValid = email === expectedEmail && password === expectedPassword;
+    const isValid = await verifyAdminCredentials(email, password);
     if (!isValid) {
       return NextResponse.redirect(new URL('/admin/login?error=1', req.url));
     }
@@ -23,7 +16,7 @@ export async function POST(req: Request) {
     const token = createSessionToken(email);
     const response = NextResponse.redirect(new URL('/admin', req.url));
     response.cookies.set({
-      name: 'driftsai_admin_session',
+      name: ADMIN_COOKIE,
       value: token,
       httpOnly: true,
       sameSite: 'lax',
@@ -34,6 +27,6 @@ export async function POST(req: Request) {
     return response;
   } catch (error) {
     console.error('Admin login failed:', error);
-    return NextResponse.json({ error: 'Admin login is unavailable.' }, { status: 500 });
+    return NextResponse.redirect(new URL('/admin/login?error=1', req.url));
   }
 }

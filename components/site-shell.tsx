@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Badge, Card } from '@/components/ui';
-import type { SiteSettings } from '@/lib/data';
+import { getSiteSettings } from '@/lib/data';
+import { cn } from '@/lib/utils';
 import { Globe, ShieldCheck, Zap } from 'lucide-react';
 
 const nav = [
@@ -11,7 +12,9 @@ const nav = [
   { href: '/support', label: 'Support' },
 ];
 
-export function SiteShell({ children, settings }: { children: React.ReactNode; settings: SiteSettings }) {
+export async function SiteShell({ children }: { children: React.ReactNode }) {
+  const settings = await getSiteSettings();
+
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.12),_transparent_30%),linear-gradient(to_bottom,_transparent,_transparent)]">
       <header className="sticky top-0 z-50 border-b bg-white/75 backdrop-blur-xl dark:bg-slate-950/70">

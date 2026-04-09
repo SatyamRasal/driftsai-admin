@@ -4,10 +4,8 @@ import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SiteShell } from '@/components/site-shell';
 import { getSiteSettings } from '@/lib/data';
-import { getSiteUrl } from '@/lib/utils';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(getSiteUrl()),
   title: 'Drifts AI',
   description: 'Premium product showcase website with CRM, admin CMS, and secure lead handling.',
 };
@@ -18,7 +16,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang="en" suppressHydrationWarning>
       <body>
         <ThemeProvider defaultTheme={settings.theme}>
-          <SiteShell settings={settings}>{children}</SiteShell>
+          <SiteShell>{children}</SiteShell>
         </ThemeProvider>
       </body>
     </html>
