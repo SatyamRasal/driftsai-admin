@@ -78,3 +78,11 @@ export function clearAdminCookie() {
     maxAge: 0,
   });
 }
+// Add 'async' to the function signature
+export async function getAdminSession() {
+  // Add 'await' before cookies()
+  const cookieStore = await cookies();
+  const token = cookieStore.get(ADMIN_COOKIE)?.value;
+  
+  return verifySessionToken(token);
+}
