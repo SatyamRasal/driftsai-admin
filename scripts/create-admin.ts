@@ -1,11 +1,25 @@
-import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
+import { createClient } from '@supabase/supabase-js';
 
+const url = process.env.SUPABASE_URL;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const email = process.env.ADMIN_EMAIL || 'admin@driftsai.com';
 const password = process.env.ADMIN_PASSWORD || 'Admin@drifts#1513#';
-const secret = process.env.ADMIN_SESSION_SECRET || crypto.randomBytes(32).toString('hex');
 
-console.log('Admin credentials');
-console.log(`Email: ${email}`);
-console.log(`Password: ${password}`);
-console.log('Session secret (use for ADMIN_SESSION_SECRET):');
-console.log(secret);
+if (!url || !serviceKey) {
+  throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required.');
+}
+
+async function main() {
+  const supabase = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  const hashed = await bcrypt.hash(password, 12);
+  console.log('Admin credential hash generated for local reference:', hashed);
+  console.log(`Admin email: ${email}`);
+  console.log(`Admin password: ${password}`);
+  console.log('Use these in the app login form.');
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

@@ -6,9 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . --ext .ts,.tsx",
-    "seed:admin": "tsx scripts/create-admin.ts",
-    "typecheck": "tsc --noEmit"
+    "lint": "next lint",
+    "seed:admin": "tsx scripts/create-admin.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",

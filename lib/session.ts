@@ -3,12 +3,7 @@ import { cookies } from 'next/headers';
 import { safeCompareStrings } from '@/lib/utils';
 
 export const ADMIN_COOKIE = 'driftsai_admin_session';
-const COOKIE_MAX_AGE = 60 * 60 * 12;
-
-export type AdminSession = {
-  email: string;
-  expires: number;
-};
+const COOKIE_MAX_AGE = 60 * 60 * 12; // 12 hours
 
 function getSecret() {
   const secret = process.env.ADMIN_SESSION_SECRET;
@@ -35,7 +30,7 @@ export function createSessionToken(email: string) {
   return `${body}.${signature}`;
 }
 
-export function verifySessionToken(token?: string | null): AdminSession | null {
+export function verifySessionToken(token?: string | null) {
   if (!token) return null;
   const [body, signature] = token.split('.');
   if (!body || !signature) return null;
@@ -50,7 +45,7 @@ export function verifySessionToken(token?: string | null): AdminSession | null {
   if (!safeCompareStrings(signature, expected)) return null;
 
   try {
-    const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8')) as Partial<AdminSession>;
+    const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8')) as { email?: unknown; expires?: unknown };
     if (typeof payload.email !== 'string' || typeof payload.expires !== 'number') return null;
     if (Date.now() > payload.expires) return null;
     return { email: payload.email, expires: payload.expires };
@@ -59,7 +54,30 @@ export function verifySessionToken(token?: string | null): AdminSession | null {
   }
 }
 
-export function getAdminSession() {
-  const token = cookies().get(ADMIN_COOKIE)?.value;
+export async function getAdminSession() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(ADMIN_COOKIE)?.value;
   return verifySessionToken(token);
+}
+
+export async function setAdminCookie(token: string) {
+  const cookieStore = await cookies();
+  cookieStore.set(ADMIN_COOKIE, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: COOKIE_MAX_AGE,
+  });
+}
+
+export async function clearAdminCookie() {
+  const cookieStore = await cookies();
+  cookieStore.set(ADMIN_COOKIE, '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0,
+  });
 }

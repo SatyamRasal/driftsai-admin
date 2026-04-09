@@ -9,10 +9,8 @@ import { formatDate } from '@/lib/utils';
 export const revalidate = 0;
 
 export default async function AdminPage() {
-  const session = getAdminSession();
-  if (!session) {
-    redirect('/admin/login');
-  }
+  const session = await getAdminSession();
+  if (!session) redirect('/admin/login');
   const adminEmail = session.email;
 
   const [stats, settings, currentProducts, upcomingProducts, leads, privacy, terms, cookies, auditLogs] = await Promise.all([
@@ -26,6 +24,11 @@ export default async function AdminPage() {
     getPageContent('cookies'),
     getAuditLogs(),
   ]);
+
+  const leadCounts = leads.reduce<Record<string, number>>((acc: Record<string, number>, lead) => {
+    acc[lead.lead_type] = (acc[lead.lead_type] || 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <section className="mx-auto max-w-7xl space-y-10 px-4 py-8 sm:px-6 lg:px-8">
@@ -252,6 +255,7 @@ export default async function AdminPage() {
           </form>
         </Card>
       </div>
+
 
       <Card className="space-y-4">
         <h2 className="text-2xl font-semibold tracking-tight">Audit logs</h2>

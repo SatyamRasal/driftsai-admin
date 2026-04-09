@@ -1,8 +1,7 @@
 import Link from 'next/link';
-import type { ReactNode } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Badge, Card } from '@/components/ui';
-import { type SiteSettings } from '@/lib/data';
+import type { SiteSettings } from '@/lib/data';
 import { Globe, ShieldCheck, Zap } from 'lucide-react';
 
 const nav = [
@@ -12,13 +11,13 @@ const nav = [
   { href: '/support', label: 'Support' },
 ];
 
-export async function SiteShell({ children, settings }: { children: ReactNode; settings: SiteSettings }) {
+export function SiteShell({ children, settings }: { children: React.ReactNode; settings: SiteSettings }) {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.12),_transparent_30%),linear-gradient(to_bottom,_transparent,_transparent)]">
       <header className="sticky top-0 z-50 border-b bg-white/75 backdrop-blur-xl dark:bg-slate-950/70">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-slate-950 text-white dark:bg-white dark:text-slate-950">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white dark:bg-white dark:text-slate-950">
               {settings.logo_url ? <img src={settings.logo_url} alt={settings.brand_name} className="h-full w-full rounded-2xl object-cover" /> : <span className="text-sm font-semibold">D</span>}
             </div>
             <div>
@@ -61,11 +60,7 @@ export async function SiteShell({ children, settings }: { children: ReactNode; s
           <Card className="space-y-3">
             <div className="text-sm font-semibold">Explore</div>
             <div className="grid gap-2 text-sm">
-              {nav.map((item) => (
-                <Link key={item.href} href={item.href} className="text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white">
-                  {item.label}
-                </Link>
-              ))}
+              {nav.map((item) => <Link key={item.href} href={item.href} className="text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white">{item.label}</Link>)}
               <Link href="/privacy" className="text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white">Privacy</Link>
               <Link href="/terms" className="text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white">Terms</Link>
               <Link href="/cookies" className="text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white">Cookie Policy</Link>

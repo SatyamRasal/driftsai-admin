@@ -11,10 +11,8 @@ import { writeAuditLog } from '@/lib/audit';
 import { isTruthy, toSlug } from '@/lib/utils';
 
 function requireAdminEmail() {
-  const session = getAdminSession();
-  if (!session) {
-    redirect('/admin/login');
-  }
+  const session = await getAdminSession();
+  if (!session) redirect('/admin/login');
   return session.email;
 }
 
@@ -22,26 +20,11 @@ function maybeString(value: unknown, fallback = '') {
   return typeof value === 'string' ? value : fallback;
 }
 
-function zodMessages(error: { issues: Array<{ message: string }> }) {
-  return error.issues.map((issue) => issue.message).join(', ');
-}
-
-function revalidateProductPaths(kind: 'current' | 'upcoming', slug: string, previousSlug?: string | null) {
-  revalidatePath('/');
-  revalidatePath('/products');
-  revalidatePath('/upcoming');
-  revalidatePath('/admin');
-  revalidatePath(`/${kind === 'current' ? 'products' : 'upcoming'}/${slug}`);
-  if (previousSlug && previousSlug !== slug) {
-    revalidatePath(`/${kind === 'current' ? 'products' : 'upcoming'}/${previousSlug}`);
-  }
-}
-
 export async function saveProduct(formData: FormData) {
   const actor = requireAdminEmail();
   const raw = Object.fromEntries(formData.entries());
   const parsed = productSchema.safeParse(raw);
-  if (!parsed.success) throw new Error(zodMessages(parsed.error));
+  if (!parsed.success) throw new Error(parsed.error.issues.map(({ message }) => message).join(', '));
 
   const supabase = getSupabaseAdminClient();
   const id = parsed.data.id || undefined;
@@ -70,13 +53,16 @@ export async function saveProduct(formData: FormData) {
     const { data, error } = await supabase.from('products').update(payload).eq('id', id).select('*').single();
     if (error) throw error;
     void writeAuditLog({ actor, action: 'update', tableName: 'products', rowId: id, before, after: data });
-    revalidateProductPaths(parsed.data.kind, data.slug, before?.slug);
   } else {
     const { data, error } = await supabase.from('products').insert(payload).select('*').single();
     if (error) throw error;
     void writeAuditLog({ actor, action: 'create', tableName: 'products', rowId: data.id, after: data });
-    revalidateProductPaths(parsed.data.kind, data.slug);
   }
+
+  revalidatePath('/');
+  revalidatePath('/products');
+  revalidatePath('/upcoming');
+  revalidatePath('/admin');
 }
 
 export async function deleteProduct(formData: FormData) {
@@ -88,9 +74,6 @@ export async function deleteProduct(formData: FormData) {
   const { error } = await supabase.from('products').delete().eq('id', id);
   if (error) throw error;
   void writeAuditLog({ actor, action: 'delete', tableName: 'products', rowId: id, before });
-  if (before?.kind && before?.slug) {
-    revalidatePath(`/${before.kind === 'current' ? 'products' : 'upcoming'}/${before.slug}`);
-  }
   revalidatePath('/');
   revalidatePath('/products');
   revalidatePath('/upcoming');
@@ -101,7 +84,7 @@ export async function saveSettings(formData: FormData) {
   const actor = requireAdminEmail();
   const raw = Object.fromEntries(formData.entries());
   const parsed = settingsSchema.safeParse(raw);
-  if (!parsed.success) throw new Error(zodMessages(parsed.error));
+  if (!parsed.success) throw new Error(parsed.error.issues.map(({ message }) => message).join(', '));
   const supabase = getSupabaseAdminClient();
 
   const rows = [
@@ -138,7 +121,7 @@ export async function savePageContent(formData: FormData) {
   const actor = requireAdminEmail();
   const raw = Object.fromEntries(formData.entries());
   const parsed = pageSchema.safeParse(raw);
-  if (!parsed.success) throw new Error(zodMessages(parsed.error));
+  if (!parsed.success) throw new Error(parsed.error.issues.map(({ message }) => message).join(', '));
   const supabase = getSupabaseAdminClient();
   const payload = {
     slug: parsed.data.slug,
@@ -151,7 +134,9 @@ export async function savePageContent(formData: FormData) {
   const { data, error } = await supabase.from('pages').upsert(payload, { onConflict: 'slug' }).select('*').single();
   if (error) throw error;
   void writeAuditLog({ actor, action: before ? 'update' : 'create', tableName: 'pages', rowId: parsed.data.slug, before, after: data });
-  revalidatePath(`/${parsed.data.slug}`);
+  revalidatePath('/privacy');
+  revalidatePath('/terms');
+  revalidatePath('/cookies');
   revalidatePath('/admin');
 }
 
