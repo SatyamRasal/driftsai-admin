@@ -10,10 +10,9 @@ import { uploadOptionalFile } from '@/lib/upload';
 import { writeAuditLog } from '@/lib/audit';
 import { isTruthy, toSlug } from '@/lib/utils';
 
-function requireAdminEmail() {
-  const session = getAdminSession();
-  if (!session) redirect('/admin/login');
-  return session.email;
+async function requireAdminEmail() {
+  const session = await getAdminSession();
+  return session?.email ?? redirect('/admin/login');
 }
 
 function maybeString(value: unknown, fallback = '') {
@@ -21,7 +20,7 @@ function maybeString(value: unknown, fallback = '') {
 }
 
 export async function saveProduct(formData: FormData) {
-  const actor = requireAdminEmail();
+  const actor = await requireAdminEmail();
   const raw = Object.fromEntries(formData.entries());
   const parsed = productSchema.safeParse(raw);
   if (!parsed.success) throw new Error(parsed.error.issues.map(({ message }) => message).join(', '));
@@ -66,7 +65,7 @@ export async function saveProduct(formData: FormData) {
 }
 
 export async function deleteProduct(formData: FormData) {
-  const actor = requireAdminEmail();
+  const actor = await requireAdminEmail();
   const id = String(formData.get('id') || '');
   if (!id) throw new Error('Missing product id');
   const supabase = getSupabaseAdminClient();
@@ -81,7 +80,7 @@ export async function deleteProduct(formData: FormData) {
 }
 
 export async function saveSettings(formData: FormData) {
-  const actor = requireAdminEmail();
+  const actor = await requireAdminEmail();
   const raw = Object.fromEntries(formData.entries());
   const parsed = settingsSchema.safeParse(raw);
   if (!parsed.success) throw new Error(parsed.error.issues.map(({ message }) => message).join(', '));
@@ -118,7 +117,7 @@ export async function saveSettings(formData: FormData) {
 }
 
 export async function savePageContent(formData: FormData) {
-  const actor = requireAdminEmail();
+  const actor = await requireAdminEmail();
   const raw = Object.fromEntries(formData.entries());
   const parsed = pageSchema.safeParse(raw);
   if (!parsed.success) throw new Error(parsed.error.issues.map(({ message }) => message).join(', '));
@@ -141,7 +140,7 @@ export async function savePageContent(formData: FormData) {
 }
 
 export async function updateLeadStatus(formData: FormData) {
-  const actor = requireAdminEmail();
+  const actor = await requireAdminEmail();
   const id = z.string().uuid().parse(String(formData.get('id') || ''));
   const status = z.enum(['new', 'in_progress', 'quoted', 'closed']).parse(String(formData.get('status') || 'new'));
   const supabase = getSupabaseAdminClient();

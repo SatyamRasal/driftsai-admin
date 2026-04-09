@@ -9,9 +9,8 @@ import { formatDate } from '@/lib/utils';
 export const revalidate = 0;
 
 export default async function AdminPage() {
-  const session = getAdminSession();
-  if (!session) redirect('/admin/login');
-  const adminEmail = session.email;
+  const session = await getAdminSession();
+  const adminEmail = session?.email ?? redirect('/admin/login');
 
   const [stats, settings, currentProducts, upcomingProducts, leads, privacy, terms, cookies, auditLogs] = await Promise.all([
     getDashboardStats(),

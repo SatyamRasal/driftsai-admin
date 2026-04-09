@@ -5,6 +5,11 @@ import { safeCompareStrings } from '@/lib/utils';
 export const ADMIN_COOKIE = 'driftsai_admin_session';
 const COOKIE_MAX_AGE = 60 * 60 * 12; // 12 hours
 
+export type AdminSession = {
+  email: string;
+  expires: number;
+};
+
 function getSecret() {
   const secret = process.env.ADMIN_SESSION_SECRET;
   if (!secret || secret.length < 32) {
@@ -30,7 +35,7 @@ export function createSessionToken(email: string) {
   return `${body}.${signature}`;
 }
 
-export function verifySessionToken(token?: string | null) {
+export function verifySessionToken(token?: string | null): AdminSession | null {
   if (!token) return null;
   const [body, signature] = token.split('.');
   if (!body || !signature) return null;
@@ -54,14 +59,15 @@ export function verifySessionToken(token?: string | null) {
   }
 }
 
-export async function getAdminSession() {
+export async function getAdminSession(): Promise<AdminSession | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(ADMIN_COOKIE)?.value;
   return verifySessionToken(token);
 }
 
-export function setAdminCookie(token: string) {
-  cookies().set(ADMIN_COOKIE, token, {
+export async function setAdminCookie(token: string) {
+  const cookieStore = await cookies();
+  cookieStore.set(ADMIN_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -70,8 +76,9 @@ export function setAdminCookie(token: string) {
   });
 }
 
-export function clearAdminCookie() {
-  cookies().set(ADMIN_COOKIE, '', {
+export async function clearAdminCookie() {
+  const cookieStore = await cookies();
+  cookieStore.set(ADMIN_COOKIE, '', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
